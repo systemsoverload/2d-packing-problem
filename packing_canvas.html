@@ -1,0 +1,126 @@
+<canvas id='truck' style='background-color:#cdcdcd'></canvas>
+
+<script type='text/javascript'>
+	function Box(x, y, w, h, label){
+		this.x = x;
+		this.y = y;
+		this.w = w;
+		this.h = h;
+		this.label = label;
+	}
+
+	Box.prototype.fits_in = function(outer){
+		return outer.w >= this.w && outer.h >= this.h;
+	}
+
+	Box.prototype.same_size_as = function(other){
+		return this.w == other.w && this.h == other.h;
+	}
+
+	function Node(){
+		this.left = null;
+		this.right = null;
+		this.box = null;
+		this.filled = false;
+	}
+
+	Node.prototype.insert_box = function(box){
+
+		if(this.left != null){
+			return this.left.insert_box(box) || this.right.insert_box(box);
+		}
+
+		if(this.filled){
+			return null;
+		}
+
+		if(!box.fits_in(this.box)){
+			return null;
+		}
+
+		if(box.same_size_as(this.box)){
+			this.filled = true;
+			return this;
+		}
+
+		this.left = new Node();
+		this.right = new Node();
+
+		var width_diff = this.box.w - box.w;
+		var height_diff = this.box.h - box.h;
+
+		if(width_diff > height_diff){
+			// split literally into left and right, putting the box on the left.
+			this.left.box = new Box( this.box.x, this.box.y, box.w, this.box.h );
+			this.right.box = new Box( this.box.x + box.w, this.box.y, this.box.w - box.w, this.box.h );
+		}else{
+			// split into top and bottom, putting box on top.
+			this.left.box = new Box( this.box.x, this.box.y, this.box.w, box.h );
+			this.right.box = new Box( this.box.x, this.box.y + box.h, this.box.w, this.box.h - box.h );
+		}
+
+		return this.left.insert_box(box);
+	}
+
+	var width = 200;
+	var height = 600;
+
+	var start_node = new Node();
+	start_node.box = new Box(0, 0, width, height);
+
+	var canvas = document.getElementById('truck');
+	canvas.width = width;
+	canvas.height = height;
+
+	var ctx = canvas.getContext('2d');
+
+	var json = {
+		"A" : [ 3, 3 ]
+		, "B" : [ 7, 5 ]
+		, "C" : [ 2, 2 ]
+		, "D" : [ 4, 2 ]
+		, "E" : [ 4, 5 ]
+		, "F" : [ 10, 2 ]
+		, "G" : [ 3, 16 ]
+		, "H" : [ 15, 4 ]
+		, "I" : [ 7, 3 ]
+		, "J" : [ 17, 12 ]
+		, "K" : [ 18, 3 ]
+		, "L" : [ 7, 12 ]
+		, "M" : [ 9, 16 ]
+		, "N" : [ 2, 4 ]
+		, "O" : [ 3, 3 ]
+		, "P" : [ 3, 3 ]
+		, "Q" : [ 2, 2 ]
+		, "R" : [ 1, 1 ]
+		, "S" : [ 1, 1 ]
+		, "T" : [ 1, 1 ]
+		, "U" : [ 1, 1 ]
+		, "V" : [ 4, 4 ]
+		, "W" : [ 4, 4 ]
+		, "X" : [ 4, 4 ]
+		, "Y" : [ 4, 4 ]
+		, "Z" : [ 4, 4 ]
+
+	};
+
+	for ( box in json ){
+		var w //Box width
+			, h //Box height
+			, node; //Node object that box will be inserted into
+
+		//Multiply by 10 to enlarge the shapes a bit
+		w = json[box][0] * 10;
+		h = json[box][1] * 10;
+		node = start_node.insert_box( new Box( 0, 0, w, h) );
+
+		if(node){
+			var r = node.box;
+			ctx.rect(r.x, r.y, r.w, r.h);
+			ctx.fillStyle = '#cd0000'
+			ctx.fill();
+			ctx.strokeStyle = '#0000000'
+			ctx.stroke();
+		}
+	}
+</script>
