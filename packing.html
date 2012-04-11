@@ -10,8 +10,6 @@
 
 		border: 2px solid black;
 		background-color: #cdcdcd;
-		width: 300px;
-		height: 768px;
 	}
 
 </style>
@@ -26,11 +24,11 @@
 	}
 
 	Box.prototype.fits_in = function(outer){
-		return outer.w >= this.w && outer.h >= this.h;
+		return outer.width >= this.width && outer.height >= this.height;
 	}
 
 	Box.prototype.same_size_as = function(other){
-		return this.w == other.w && this.h == other.h;
+		return this.width == other.width && this.height == other.height;
 	}
 
 	function Node(){
@@ -41,7 +39,6 @@
 	}
 
 	Node.prototype.insert_box = function(box){
-
 		if(this.left != null){
 			return this.left.insert_box(box) || this.right.insert_box(box);
 		}
@@ -78,11 +75,8 @@
 		return this.left.insert_box(box);
 	}
 
-	var width = 200;
-	var height = 600;
-
 	var start_node = new Node();
-	start_node.box = new Box(0, 0, width, height);
+	start_node.box = new Box(0, 0, 0, 0);
 
 	var json = {
 		"A" : [ 3, 3 ]
@@ -120,35 +114,44 @@
 	for (var box in json){
 		var width = json[box][0];
 		var height = json[box][1];
-		boxes.push( new Box( 0, 0, width, height, box ) )
+		boxes.push({
+			'width':width * 10
+			, 'height':height * 10
+			, 'label':box
+		})
 
 	}
 
-	//Sort the array of boxes into descending order
-	boxes.sort( function compare(a,b){
+	//Sort the array of boxes into descending order by
+	boxes = boxes.sort( function compare(a,b){
 		if( a.width < b.width )
 			return 1;
 		if( a.width > b.width )
 			return -1;
 		return 0;
-	})
+	});
 
 	for (var box in boxes){
-		console.log( boxes[box].height )
-		var node = start_node.insert_box( new Box( 0, 0, boxes[box].width, boxes[box].height ) );
-		console.log( node )
+		start_node.box.height += boxes[box].height;
+		start_node.box.width += boxes[box].width;
+		var load_box = new Box( 0, 0, boxes[box].width, boxes[box].height );
+		var node = start_node.insert_box( load_box );
+
+		var $truck = $('#truck');
+
 		if(node){
-			var $truck = $('#truck');
+
 			$truck.append(
-				$('<div class=box>'+label+'</div>').css({
-					'height': r.height
-					, 'width': r.width
-					, 'left': r.x
-					, 'top': r.y
+				$('<div class=box>'+node.box.label+'</div>').css({
+					'height': node.box.height
+					, 'width': node.box.width
+					, 'left': node.box.x
+					, 'top': node.box.y
 					, 'background-color': '#'+Math.floor(Math.random()*16777215).toString(16)
 				})
 			)
 		}
+		$truck.css({height:start_node.box.height,width:start_node.box.width})
 	}
 
 </script>
